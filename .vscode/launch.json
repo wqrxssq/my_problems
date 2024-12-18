@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/wqr.xssq/Work/my_problems/dima-armor",
-      "program": "/Users/wqr.xssq/Work/my_problems/dima-armor/build/Debug/outDebug"
+      "cwd": "/Users/wqr.xssq/Work/my_problems/matrix_to_list_edges",
+      "program": "/Users/wqr.xssq/Work/my_problems/matrix_to_list_edges/build/Debug/outDebug"
     }
   ]
 }
