@@ -9,11 +9,13 @@
 #endif
 
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
+#include <cassert>
 
 using namespace std;
 
@@ -41,14 +43,14 @@ void print_test(const int n, const int m, const vector<int>& ids, const vector<p
 }
 
 vector<int> generate_ids(int type, int n) {
-    unordered_set<int> q_id;
     vector<int> ids;
     if (type == 0) {
         for (int i = 0; i < n; i++) {
             ids.push_back(i + 1);
         }
     } else if (type == 1) {
-        while ((int)q_id.size() <= n) {
+        unordered_set<int> q_id;
+        while ((int)q_id.size() < n) {
             int id = rnd.next(MIN_ID, MAX_ID);
             if (q_id.contains(id)) {
                 continue;
@@ -60,160 +62,152 @@ vector<int> generate_ids(int type, int n) {
     } else {
         assert(0);
     }
+    return ids;
 }
 
-void generate_small_graph() {
-    int n = rnd.next(4, 8);
-    int m = rnd.wnext(1, min((n * (n - 1)) / 2, 10), n / 3);
-    ensuref(n >= MIN_N && n <= MAX_N, "n should be [1, 10^5]");
-    ensuref(m >= MIN_M && m <= MAX_M, "m should be [0, 10^5]");
-
-    vector<int> ids = generate_ids(0, n);
-    while ((int)q_e.size() < m) {
-        int v = rnd.next(1, n);
-        int u = rnd.next(1, n);
-        if (v == u || q.contains({v, u}) || q.contains({u, v})) {
-            continue;
-        } else {
-            q.insert({v, u});
-            e.push_back({v, u});
-        }
-    }
-
+vector<pair<int, int>> generate_random_edges(int n, int m, vector<int>& ids) {
     set<pair<int, int>> q_e;
     vector<pair<int, int>> e;
 
     while ((int)q_e.size() < m) {
         int v = rnd.next(1, n);
         int u = rnd.next(1, n);
-        if (v == u || q.contains({v, u}) || q.contains({u, v})) {
+        if (v == u || q_e.contains({v, u}) || q_e.contains({u, v})) {
             continue;
         } else {
-            q.insert({v, u});
-            e.push_back({v, u});
+            q_e.insert({v, u});
+            e.push_back({ids[v - 1], ids[u - 1]});
         }
     }
+    return e;
+}
 
+void generate_small_graph() {
+    int n = rnd.next(4, 8);
+    int m = rnd.wnext(1, min((n * (n - 1)) / 2, 10), n / 3);
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
+
+    vector<int> ids = generate_ids(0, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
+
+    vector<pair<int, int>> e = generate_random_edges(n, m, ids);
     ensuref((int)e.size() == m, "m should be same as size of E");
-    print_test(n, m, ids, e)
+
+    print_test(n, m, ids, e);
 }
 
 void generate_average_graph() {
-    int n = rnd.wnext(MINN, AVERAGEN, 10);
-    int m = rnd.next(MINM, min((n * (n - 1)) / 2, AVERAGEN * 10));
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
+    int n = rnd.wnext(MIN_N, AVERAGE_N, 4);
+    int m = rnd.wnext(MIN_M, min((n * (n - 1)) / 2, AVERAGE_N * 4), 10);
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
 
-    vector<pair<int, int>> e;
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
 
-    println(n, m);
-    for (int i = 0; i < m; i++) {
-        int v = rnd.next(MINN, n);
-        int u = rnd.next(MINN, n);
-        if (u == v) {
-            u++;
-            if (u == n + 1) {
-                u = 1;
-            }
-        }
-        e.push_back({v, u});
-    }
-
+    vector<pair<int, int>> e = generate_random_edges(n, m, ids);
     ensuref((int)e.size() == m, "m should be same as size of E");
-    print_e(e);
+
+    print_test(n, m, ids, e);
 }
 
 void generate_tree() {
-    int n = rnd.next(MINN, MAXN);
+    int n = rnd.wnext(MIN_N, MAX_N, 4);
     int m = n - 1;
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
+
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
 
     vector<pair<int, int>> e;
-
-    println(n, m);
     for (int v = 2; v <= n; v++) {
-        int p = rnd.next(MINN, v - 1);
-        e.push_back({p, v});
+        int p = rnd.next(1, v - 1);
+        e.push_back({ids[p - 1], ids[v - 1]});
     }
-
+    shuffle(e.begin(), e.end());
     ensuref((int)e.size() == m, "m should be same as size of E");
-    print_e(e);
+
+    print_test(n, m, ids, e);
 }
 
 void generate_bamboo() {
-    int n = rnd.wnext(MINN, MAXN, 10);
+    int n = MAX_N;
     int m = n - 1;
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
+
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
 
     vector<pair<int, int>> e;
-
-    println(n, m);
     vector<int> perm = rnd.perm(n);
     for (int i = 0; i < n - 1; i++) {
-        e.push_back({perm[i] + 1, perm[i + 1] + 1});
+        e.push_back({ids[perm[i]], ids[perm[i + 1]]});
     }
+    shuffle(e.begin(), e.end());
+    ensuref((int)e.size() == m, "m should be same as size of E");
 
+    print_test(n, m, ids, e);
+}
+
+void generate_graph_with_a_lot_of_edges() {
+    int n = rnd.wnext(MIN_N, MAX_N_FOR_FULL_GRAPH, 10);
+
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
+
+    vector<pair<int, int>> e;
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (rnd.next(0, 1)) {
+                e.push_back({ids[i], ids[j]});
+            }
+        }
+    }
     shuffle(e.begin(), e.end());
 
-    ensuref((int)e.size() == m, "m should be same as size of E");
-    print_e(e);
+    int m = (int)e.size();
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
+
+    print_test(n, m, ids, e);
 }
 
 void generate_full_graph() {
-    int n = rnd.wnext(MINN, MAXN_FOR_FULL_GRAPH, 5);
+    int n = rnd.wnext(MIN_N, MAX_N_FOR_FULL_GRAPH, 5);
     int m = (n * (n - 1)) / 2;
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
+
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
 
     vector<pair<int, int>> e;
-
-    println(n, m);
     for (int i = 0; i < n; i++) {
         for (int j = i + 1; j < n; j++) {
-            e.push_back({i + 1, j + 1});
+            e.push_back({ids[i], ids[j]});
         }
     }
-
     shuffle(e.begin(), e.end());
-
     ensuref((int)e.size() == m, "m should be same as size of E");
-    print_e(e);
+
+    print_test(n, m, ids, e);
 }
 
 void generate_big_graph() {
-    int n = MAXN;
-    int m = rnd.wnext(MINM, MAXM, 50);
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
+    int n = MAX_N / 2;
+    int m = rnd.wnext(MIN_N, MAX_M, 50);
+    ensuref(n >= MIN_N && n <= MAX_N, "n should be [2, 2e5]");
+    ensuref(m >= MIN_M && m <= MAX_M, "m should be [1, 2e5]");
 
-    vector<pair<int, int>> e;
+    vector<int> ids = generate_ids(1, n);
+    ensuref((int)ids.size() == n, "n should be same as size of ids");
 
-    println(n, m);
-    for (int i = 0; i < m; i++) {
-        int v = rnd.next(MINN, n);
-        int u = rnd.next(MINN, n);
-        if (u == v) {
-            u++;
-            if (u == n + 1) {
-                u = 1;
-            }
-        }
-        e.push_back({v, u});
-    }
-
+    vector<pair<int, int>> e = generate_random_edges(n, m, ids);
     ensuref((int)e.size() == m, "m should be same as size of E");
-    print_e(e);
-}
 
-void generate_empty_graph() {
-    int n = rnd.wnext(MINN, MAXN, 5);
-    int m = 0;
-    ensuref(n >= MINN && n <= MAXN, "n should be [1, 10^5]");
-    ensuref(m >= MINM && m <= MAXM, "m should be [0, 10^5]");
-
-    println(n, m);
+    print_test(n, m, ids, e);
 }
 
 int main(int argc, char *argv[]) {

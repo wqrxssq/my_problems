@@ -70,7 +70,9 @@
     "barrier": "cpp",
     "latch": "cpp",
     "semaphore": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "unordered_set": "cpp",
+    "set": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "clang++",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
